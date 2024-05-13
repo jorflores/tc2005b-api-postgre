@@ -1,5 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
+const jwt = require("jsonwebtoken");
+
 
 exports.createUser = async (req, res) => {
   try {
@@ -19,6 +21,27 @@ exports.createUser = async (req, res) => {
   }
 };
 
+
+exports.getAllUsers = async (req, res) => {
+  try {
+
+    const token = req.cookies.authToken; 
+    console.log(token)
+
+    const users = await User.findAll();
+    if (!users) {
+      res.status(201).json({ message: 'No existen usuarios registrados' });
+    }
+    else {
+      return res.status(201).json({users});
+    }
+
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
+
+
 exports.loginUser = async (req, res) => {
   try {
     const { phone, password } = req.body;
@@ -30,8 +53,21 @@ exports.loginUser = async (req, res) => {
     if (!match) {
       return res.status(401).json({ message: 'Authentication failed' });
     }
-    res.json({ message: 'Login successful', token: '1234ABCD' });
+
+    const token = jwt.sign({id: user.id, phone: user.phone}, "SECRETKEY", {expiresIn: "1h"})
+
+        // Set the token in an HTTP-only cookie
+        res.cookie('authToken', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production', // Ensure cookies are sent over HTTPS in production
+          sameSite: 'strict', // Protects against CSRF attacks
+          maxAge: 3600000 // 1 hour in milliseconds
+        });
+
+
+    res.json({ message: 'Login successful'});
   } catch (error) {
     res.status(400).json({ message: error.message });
   }
 };
+
