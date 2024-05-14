@@ -32,6 +32,24 @@ exports.loginUser = async (req, res) => {
 };
 
 
+exports.getUserData = async (req, res) => {
+  try {
+
+    const user = req.user
+    console.log(user)
+
+    const userData = await User.findOne({ where: { id: user.id } });
+    if (!userData) {
+      res.status(201).json({ message: 'No existen usuarios registrados' });
+    }
+    else {
+      return res.status(201).json({id:userData.id, role: userData.role});
+    }
+
+  } catch (error) {
+    res.status(400).json({ message: error.message });
+  }
+};
 
 
 
