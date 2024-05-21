@@ -3,13 +3,16 @@ const jwt = require("jsonwebtoken");
 
 exports.verifyToken = (req,res,next) =>{
 
-    const token = req.cookies.authToken || null; 
+
+    const token = req.cookies.authToken || req.headers["authorization"] || null; 
 
     if (!token){
+
         return res.status(401).json({ message: "Unauthorized" });
     }
 
     jwt.verify(token, process.env.SECRET, (err, decoded) => {
+
         if (err) {
           return res.status(401).json({ message: "Invalid token" });
         }
@@ -20,11 +23,9 @@ exports.verifyToken = (req,res,next) =>{
 }
 
 exports.logTime = (tag) => (req,res,next) =>{
-
     const now = new Date();
     console.log(`[${tag}] ${now.toLocaleString()}`); 
     next();
-
 }
 
 
